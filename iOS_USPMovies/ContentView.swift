@@ -8,17 +8,29 @@
 import SwiftUI
 
 struct ContentView: View {
+    let container: AppContainer
+
+    @State private var popularCoordinator = TabCoordinator()
+    @State private var searchCoordinator = TabCoordinator()
+    @State private var favoritesCoordinator = TabCoordinator()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            Tab("Populares", systemImage: "flame.fill") {
+                PopularView(container: container, coordinator: popularCoordinator)
+            }
+
+            Tab("Buscar", systemImage: "magnifyingglass", role: .search) {
+                SearchView(container: container, coordinator: searchCoordinator)
+            }
+
+            Tab("Favoritos", systemImage: "heart.fill") {
+                FavoritesView(container: container, coordinator: favoritesCoordinator)
+            }
         }
-        .padding()
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(container: AppContainer())
 }
