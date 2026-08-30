@@ -1,44 +1,89 @@
-# USPMovies — iOS (Swift/SwiftUI)
+# USPMovies — iOS 🎬
 
-Catálogo de filmes (TMDB) construído como material didático do curso **Arquitetura Mobile I-II** (MBA USP Esalq). Mesma arquitetura das versões Android (Kotlin) e React Native — muda só o "sotaque" da linguagem.
+![Platform](https://img.shields.io/badge/platform-iOS-000000)
+![Swift](https://img.shields.io/badge/Swift-5-fa7343)
+![SwiftUI](https://img.shields.io/badge/SwiftUI-Liquid_Glass-1e90ff)
+![Deployment](https://img.shields.io/badge/iOS-26.5+-000000)
+![Xcode](https://img.shields.io/badge/Xcode-26+-1575f9)
+![Architecture](https://img.shields.io/badge/arquitetura-Clean_+_MVVM_(4_camadas)-8a2be2)
+
+Catálogo de filmes consumindo a API do **TMDB**, em Swift/SwiftUI. É a stack iOS
+do app de referência do curso **Arquitetura Mobile I‑II** (MBA em Engenharia de
+Software — USP/Esalq). O mesmo escopo funcional e a **mesma arquitetura** são
+implementados em paralelo em três stacks — muda só o "sotaque" da linguagem.
+
+> Projeto didático. O foco é a organização em camadas — não uma publicação real
+> na loja.
+
+## Projetos irmãos
+
+| Stack | Repositório | Status |
+|---|---|---|
+| React Native | [`adonaipinheiro/RN_USPMovies`](https://github.com/adonaipinheiro/RN_USPMovies) | testes 100% · CI/CD (Android) |
+| Android nativo | [`adonaipinheiro/Android_USPMovies`](https://github.com/adonaipinheiro/Android_USPMovies) | versão inicial funcional |
+| **iOS nativo** | `adonaipinheiro/iOS_USPMovies` | versão inicial funcional |
+
+## Funcionalidades
+
+| # | Feature | Detalhe |
+|---|---|---|
+| F1 | Lista de populares | paginação |
+| F2 | Busca | com debounce |
+| F3 | Detalhe do filme | — |
+| F4 | Favoritar / desfavoritar | persistido em SwiftData, funciona offline |
+| F5 | Tela de favoritos | lê o snapshot local |
+| F6 | Cache offline dos populares | dentro do repositório |
+
+Toda tela de dados trata os estados **loading / data / empty / error**
+(`ContentUnavailableView`).
 
 ## Configurar a API key da TMDB
 
-1. Crie uma conta gratuita em https://developer.themoviedb.org e gere um **API Read Access Token** (token v4, não a `api_key` v3).
+1. Crie uma conta em https://developer.themoviedb.org e gere um **API Read Access
+   Token** (token v4, não a `api_key` v3).
 2. Copie o arquivo de exemplo:
    ```bash
    cp iOS_USPMovies/Infra/Config/Secrets.example.plist iOS_USPMovies/Infra/Config/Secrets.plist
    ```
-3. Abra `Secrets.plist` e preencha `TMDB_ACCESS_TOKEN` com o seu token.
-4. `Secrets.plist` já está no `.gitignore` — nunca será commitado.
+3. Preencha `TMDB_ACCESS_TOKEN` em `Secrets.plist`. O arquivo está no `.gitignore`.
+
+Sem esse passo, o app dá `fatalError` na inicialização explicando o que falta —
+proposital, para não esquecer a chave.
 
 ## Rodar
 
-Abra `iOS_USPMovies.xcodeproj` no Xcode 26+ e rode no simulador (iOS 26+). Sem o passo acima, o app dá `fatalError` na inicialização explicando o que falta — é proposital, para não esquecer a chave.
+Abra `iOS_USPMovies.xcodeproj` no **Xcode 26+** e rode no simulador (**iOS 26.5+**).
+O projeto usa *file-system-synchronized groups* — arquivos novos na pasta são
+pegos automaticamente, sem editar o `.pbxproj`.
 
 ## Arquitetura — 4 camadas
 
 Regra de dependência: tudo aponta para o **Domain**.
 
 ```
-Presentation → Domain ← Repositories → Infra
+Presentation ──► Domain ◄── Repositories ──► Infra
 ```
 
-- **Domain** (`Domain/`): entidade `Movie`, casos de uso (`GetPopularMovies`, `SearchMovies`, `GetMovieDetails`, `ToggleFavorite`, `GetFavorites`, `ObserveIsFavorite`) e os protocolos `MoviesRepository`/`FavoritesRepository`. Swift puro — não importa `SwiftUI` nem `SwiftData`.
-- **Repositories** (`Repositories/`): implementa os protocolos do domínio. Conhece o vocabulário do domínio (fala de `Movie`) e usa o `Infra` por baixo — DTOs da TMDB, mapeamento DTO↔entidade, modelos SwiftData (`FavoriteMovieRecord`, `CachedPopularMovieRecord`) e a lógica de cache/favoritos.
-- **Infra** (`Infra/`): puramente técnico, não sabe o que é um "filme" — cliente HTTP genérico (`APIClient`) e leitura de configuração (`AppConfig`).
-- **Presentation** (`Presentation/`): Views SwiftUI burras (`PopularView`, `SearchView`, `DetailView`, `FavoritesView`) + ViewModels `@Observable` que concentram a lógica de tela. Navegação desacoplada via `TabCoordinator` (`Navigation/`).
-- **DI** (`DI/AppContainer.swift`): único lugar que conhece todas as camadas ao mesmo tempo — monta o grafo de dependências na inicialização do app.
+| Camada | Papel | Conteúdo |
+|---|---|---|
+| `Domain/` | regras e contratos, Swift puro (sem `SwiftUI` / `SwiftData`) | entidade `Movie`; protocolos `MoviesRepository` / `FavoritesRepository`; casos de uso `GetPopularMovies`, `SearchMovies`, `GetMovieDetails`, `ToggleFavorite`, `GetFavorites`, `ObserveIsFavorite` |
+| `Repositories/` | implementam os protocolos do domínio; falam de `Movie` | DTOs da TMDB, mapeamento DTO↔entidade, modelos SwiftData (`FavoriteMovieRecord`, `CachedPopularMovieRecord`), lógica de cache e favoritos |
+| `Infra/` | encanamento técnico, não sabe o que é um "filme" | `APIClient` (HTTP genérico), `AppConfig` (leitura de configuração) |
+| `Presentation/` | Views SwiftUI "burras" + ViewModels `@Observable` | `PopularView`, `SearchView`, `DetailView`, `FavoritesView`; navegação desacoplada via `TabCoordinator` (`Navigation/`) |
+
+**DI** (`DI/AppContainer.swift`): único ponto que conhece todas as camadas ao
+mesmo tempo — monta o grafo de dependências na inicialização do app.
 
 ## UI
 
-SwiftUI moderno (iOS 26 / Liquid Glass): `.glassEffect()`, `.buttonStyle(.glass)`, `Tab(role: .search)`, `ContentUnavailableView`, `Observation` (`@Observable`), `async/await`, `SwiftData`.
-
-## Funcionalidades
-
-F1 populares (paginado) · F2 busca com debounce · F3 detalhe · F4 favoritar (offline) · F5 tela de favoritos · F6 cache offline de populares.
+SwiftUI moderno com **Liquid Glass (iOS 26)**: `.glassEffect()`,
+`.buttonStyle(.glass)` / `.glassProminent`, `Tab(role: .search)` (aba de busca que
+faz *morph* num campo flutuante), `ContentUnavailableView`, `Observation`
+(`@Observable`), `SwiftData`, `async/await`.
 
 ## Próximos passos
 
-- Testes unitários dos casos de uso com repositórios mockados (XCTest) — ainda não há um target de testes configurado no projeto.
-- `COMPARACAO.md` na raiz do curso, depois que as 3 stacks tiverem uma versão inicial.
+- Adicionar um target de testes (XCTest) para os casos de uso com repositórios
+  mockados — exige criar um novo `PBXNativeTarget` no projeto. A stack RN já tem
+  cobertura 100%, serve de referência.
+- `COMPARACAO.md` na raiz do curso, comparando as 3 stacks lado a lado.
