@@ -1,13 +1,15 @@
 //
-//  FavoriteMovieRecord.swift
-//  camada: repositories — esquema de persistência (SwiftData) para F4/F5.
+//  CachedPopularMovieRecord.swift
+//  camada: data — esquema de cache local (SwiftData) para F6. Assim como o
+//  FavoriteMovieRecord, é só o "molde" da tabela; a lógica de fallback
+//  online→cache mora no Repository (MoviesRepositoryImpl).
 //
 
 import Foundation
 import SwiftData
 
 @Model
-final class FavoriteMovieRecord {
+final class CachedPopularMovieRecord {
     @Attribute(.unique) var id: Int
     var title: String
     var posterPath: String?
@@ -15,9 +17,9 @@ final class FavoriteMovieRecord {
     var voteAverage: Double
     var releaseYear: String?
     var genres: [String]
-    var addedAt: Date
+    var position: Int
 
-    init(movie: Movie, addedAt: Date = .now) {
+    init(movie: Movie, position: Int) {
         self.id = movie.id
         self.title = movie.title
         self.posterPath = movie.posterPath
@@ -25,7 +27,7 @@ final class FavoriteMovieRecord {
         self.voteAverage = movie.voteAverage
         self.releaseYear = movie.releaseYear
         self.genres = movie.genres
-        self.addedAt = addedAt
+        self.position = position
     }
 
     func toDomain() -> Movie {

@@ -1,6 +1,9 @@
 //
 //  FavoritesRepositoryImpl.swift
-//  camada: repositories — implementa o protocolo do domínio usando o Infra.
+//  camada: repository — implementa o protocolo `FavoritesRepository` (Domain)
+//  usando o registro de Data (`FavoriteMovieRecord`) via SwiftData. Mantém o
+//  `favoriteIds` em memória (observável pela Presentation) como política de
+//  performance/UX — isso é decisão do Repository, não de Data.
 //
 
 import Foundation

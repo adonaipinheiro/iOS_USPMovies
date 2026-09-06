@@ -1,7 +1,10 @@
 //
 //  AppContainer.swift
-//  camada: DI — o único lugar autorizado a conhecer domain, repositories e
-//  infra ao mesmo tempo. É aqui que a arquitetura é "montada".
+//  camada: DI — o único lugar autorizado a conhecer Domain, Repository, Data
+//  e Infra ao mesmo tempo. É aqui que a arquitetura é "montada": escolhe as
+//  implementações concretas (Repository) e injeta as fontes de Data/Infra
+//  (SwiftData, APIClient) por trás dos protocolos do Domain, entregando à
+//  Presentation só os casos de uso já prontos para consumo.
 //
 
 import Foundation

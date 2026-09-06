@@ -1,6 +1,8 @@
 //
 //  MovieDTO.swift
-//  camada: repositories — o domínio nunca vê o JSON cru da TMDB.
+//  camada: data — formato bruto vindo da fonte remota (TMDB). O domínio nunca
+//  vê JSON: quem traduz DTO → entidade é o Data/Mapper, e quem decide o que
+//  fazer com o resultado (cache, fallback) é o Repository, não esta camada.
 //
 
 import Foundation
