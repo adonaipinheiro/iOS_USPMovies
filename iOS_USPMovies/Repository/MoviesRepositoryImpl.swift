@@ -1,6 +1,10 @@
 //
 //  MoviesRepositoryImpl.swift
-//  camada: repositories — implementa o protocolo do domínio usando o Infra.
+//  camada: repository — implementa o protocolo `MoviesRepository` (Domain)
+//  orquestrando as fontes de Data (DTO/mapper remoto + registro de cache
+//  local) por cima do Infra (APIClient). A política de negócio — cachear a
+//  página 1 e cair para o cache quando a rede falha (F6) — mora aqui, não
+//  em Data: Data só sabe descrever/traduzir, não decidir.
 //
 
 import Foundation

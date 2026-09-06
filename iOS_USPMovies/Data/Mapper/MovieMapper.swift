@@ -1,6 +1,8 @@
 //
 //  MovieMapper.swift
-//  camada: repositories — mapeia DTO(TMDB) ↔ entidade de domínio.
+//  camada: data — traduz o DTO (formato da TMDB) para a entidade de domínio
+//  `Movie`. É a "fronteira de tradução": tudo que sai daqui já fala a língua
+//  do domínio, e quem chama (Repository) não precisa saber do formato remoto.
 //
 
 enum MovieMapper {

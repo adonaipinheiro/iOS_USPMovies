@@ -5,7 +5,7 @@
 ![SwiftUI](https://img.shields.io/badge/SwiftUI-Liquid_Glass-1e90ff)
 ![Deployment](https://img.shields.io/badge/iOS-26.5+-000000)
 ![Xcode](https://img.shields.io/badge/Xcode-26+-1575f9)
-![Architecture](https://img.shields.io/badge/arquitetura-Clean_+_MVVM_(4_camadas)-8a2be2)
+![Architecture](https://img.shields.io/badge/arquitetura-Clean_+_MVVM_(6_camadas)-8a2be2)
 
 Catálogo de filmes consumindo a API do **TMDB**, em Swift/SwiftUI. É a stack iOS
 do app de referência do curso **Arquitetura Mobile I‑II** (MBA em Engenharia de
@@ -56,23 +56,34 @@ Abra `iOS_USPMovies.xcodeproj` no **Xcode 26+** e rode no simulador (**iOS 26.5+
 O projeto usa *file-system-synchronized groups* — arquivos novos na pasta são
 pegos automaticamente, sem editar o `.pbxproj`.
 
-## Arquitetura — 4 camadas
+## Arquitetura — 6 camadas
 
-Regra de dependência: tudo aponta para o **Domain**.
+Regra de dependência: tudo aponta para o **Domain**. `DI` é o único ponto que
+tem permissão de conhecer todas as outras camadas ao mesmo tempo — é ele quem
+"liga os fios" na inicialização do app.
 
 ```
-Presentation ──► Domain ◄── Repositories ──► Infra
+Presentation ──► Domain ◄── Repository ──► Data ──► Infra
+                               ▲
+                               │
+                              DI  (conhece Domain + Repository + Data + Infra)
 ```
 
 | Camada | Papel | Conteúdo |
 |---|---|---|
 | `Domain/` | regras e contratos, Swift puro (sem `SwiftUI` / `SwiftData`) | entidade `Movie`; protocolos `MoviesRepository` / `FavoritesRepository`; casos de uso `GetPopularMovies`, `SearchMovies`, `GetMovieDetails`, `ToggleFavorite`, `GetFavorites`, `ObserveIsFavorite` |
-| `Repositories/` | implementam os protocolos do domínio; falam de `Movie` | DTOs da TMDB, mapeamento DTO↔entidade, modelos SwiftData (`FavoriteMovieRecord`, `CachedPopularMovieRecord`), lógica de cache e favoritos |
-| `Infra/` | encanamento técnico, não sabe o que é um "filme" | `APIClient` (HTTP genérico), `AppConfig` (leitura de configuração) |
-| `Presentation/` | Views SwiftUI "burras" + ViewModels `@Observable` | `PopularView`, `SearchView`, `DetailView`, `FavoritesView`; navegação desacoplada via `TabCoordinator` (`Navigation/`) |
+| `Data/` | fontes de dados: formato bruto + tradução para o domínio; já "conhece" `Movie`, mas não decide política de negócio | DTOs da TMDB (`Data/Remote/DTO`), mapeamento DTO↔entidade (`Data/Mapper`), modelos SwiftData (`Data/Local`: `FavoriteMovieRecord`, `CachedPopularMovieRecord`) |
+| `Repository/` | implementa os protocolos do `Domain`, orquestrando as fontes de `Data` por cima do `Infra` | `MoviesRepositoryImpl` (fallback online→cache, F6), `FavoritesRepositoryImpl` (favoritos observáveis, F4/F5) |
+| `Infra/` | encanamento técnico 100% genérico, não sabe o que é um "filme" | `APIClient` (HTTP genérico), `AppConfig` (leitura de configuração) |
+| `DI/` | composição do grafo de dependências; único lugar que conhece Domain + Repository + Data + Infra ao mesmo tempo | `AppContainer` |
+| `Presentation/` | Views SwiftUI "burras" + ViewModels `@Observable` + navegação | `PopularView`, `SearchView`, `DetailView`, `FavoritesView`; navegação desacoplada via `TabCoordinator`/`Route` (`Presentation/Navigation/`) |
 
-**DI** (`DI/AppContainer.swift`): único ponto que conhece todas as camadas ao
-mesmo tempo — monta o grafo de dependências na inicialização do app.
+> Antes desta refatoração o projeto usava 4 camadas (`Domain`, `Repositories`,
+> `Infra`, `Presentation`, com `Navigation/` na raiz). `Repositories/` foi
+> dividida em `Data/` (fontes de dados e mapeamento) e `Repository/`
+> (orquestração/política), e `Navigation/` passou para dentro de
+> `Presentation/Navigation/`, já que navegação é responsabilidade de
+> apresentação.
 
 ## UI
 
